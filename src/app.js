@@ -14,6 +14,7 @@ import venice_sunset_environment from "../assets/hdr/venice_sunset_1k.hdr"
 import college from "../assets/college.glb"
 
 import snowman from "../assets/snowman_-_low_poly.glb"
+import {CanvasUI} from "./utils/CanvasUI";
 const snowmanPosition = {x: 0, y: 0.5, z: -1, scale: 1.0}
 
 class App {
@@ -53,7 +54,7 @@ class App {
 
         container.appendChild(this.renderer.domElement);
 
-        // this.setEnvironment();
+        this.setEnvironment();
 
         // this.initScene();
         this.setupXR();
@@ -72,9 +73,17 @@ class App {
         this.stats = new Stats()
         container.appendChild( this.stats.dom )
 
-        // this.loadingBar = new LoadingBar()
+        this.loadingBar = new LoadingBar()
 
         this.loadCollege()
+
+        // Add here task 2
+        this.vecDolly = new THREE.Vector3()
+        this.vecObject = new THREE.Vector3()
+
+        // TASK 2 load JSON file with text for info boards
+        // this.boardShown = ''
+        // this.boardData = collegeInfo
     }
 
     setEnvironment(){
@@ -137,13 +146,13 @@ class App {
                      }
                  })
 
-                 // self.loadingBar.visible = false
+                 self.loadingBar.visible = false
 
                  self.setupXR()
              },
             // called while loading is progressing
             xhr => {
-                // self.loadingBar.progress = (xhr.loaded / xhr.total);
+                self.loadingBar.progress = (xhr.loaded / xhr.total);
             },
             // called when loading has errors
             error => {
@@ -235,10 +244,15 @@ class App {
 
         // Add Enter WebXR button
         document.body.appendChild(VRButton.createButton(this.renderer))
+
+        // TASK 2 Initialize mesh for info board
+
+        this.createUI();
+
         this.renderer.setAnimationLoop(this.render.bind(this))
     }
 
-    buildControllers( parent = this.scene ){
+    buildControllers(parent = this.scene) {
         const controllerModelFactory = new XRControllerModelFactory();
 
         const geometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -1 ) ] );
@@ -293,9 +307,38 @@ class App {
             pos = this.dolly.getWorldPosition( this.origin );
         }
 
-        // Enter code HERE
+        // TASK 1. Update moving constraints
 
+        dir.set(-1,0,0);
+        dir.applyMatrix4(this.dolly.matrix);
+        dir.normalize();
+        this.raycaster.set(pos, dir);
 
+        intersect = this.raycaster.intersectObject(this.proxy);
+        if (intersect.length>0){
+            if (intersect[0].distance<wallLimit) this.dolly.translateX(wallLimit-intersect[0].distance);
+        }
+
+        //cast right
+        dir.set(1,0,0);
+        dir.applyMatrix4(this.dolly.matrix);
+        dir.normalize();
+        this.raycaster.set(pos, dir);
+
+        intersect = this.raycaster.intersectObject(this.proxy);
+        if (intersect.length>0){
+            if (intersect[0].distance<wallLimit) this.dolly.translateX(intersect[0].distance-wallLimit);
+        }
+
+        //cast down
+        dir.set(0,-1,0);
+        pos.y += 1.5;
+        this.raycaster.set(pos, dir);
+
+        intersect = this.raycaster.intersectObject(this.proxy);
+        if (intersect.length>0){
+            this.dolly.position.copy( intersect[0].point );
+        }
         //Restore the original rotation
         this.dolly.quaternion.copy( quaternion );
     }
@@ -308,6 +351,16 @@ class App {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    createUI() {
+        // Task 2
+
+    }
+
+    showInfoBoard(name, obj, pos) {
+        // Task 2
+
     }
 
     render( timestamp, frame) {
@@ -374,6 +427,10 @@ class App {
         if (this.renderer.xr.isPresenting && this.selectPressed){
             this.moveDolly(dt);
         }
+
+        // TASK 2. Show info board as the user gets 3 meters closer to the object.
+
+
         this.stats.update()
         this.renderer.render(this.scene, this.camera);
     }
