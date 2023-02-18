@@ -108,3 +108,15 @@ import collegeInfo from "../assets/college.json"
             }
         }
 ```
+
+## Task 3. Add movement on vertically static position with gaze detection
+
+1. Initialized gaze if missed grip controller
+
+![](/docs/task3.1.png)
+2. Add event listener for `connected` event
+
+![](/docs/task3.2.png)
+3. Move if gaze controller detect static position
+
+![](/docs/task3.3.png)

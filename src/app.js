@@ -236,10 +236,15 @@ class App {
 
         const self = this
 
+        // TASK 3. Initialized gaze if missed grip controller
+
+
         this.controllers = this.buildControllers(this.dolly)
         this.controllers.forEach((controller) => {
             controller.addEventListener('selectstart', onSelectStart)
             controller.addEventListener('selectend', onSelectEnd)
+
+            // TASK 3. Add event listener for `connected` event
         })
 
         // Add Enter WebXR button
@@ -424,7 +429,9 @@ class App {
 
         const dt = this.clock.getDelta();
 
-        if (this.renderer.xr.isPresenting && this.selectPressed){
+        // TASK 3. Move if gaze controller detect static position
+
+        if (this.renderer.xr.isPresenting && this.selectPressed ) {
             this.moveDolly(dt);
         }
 
